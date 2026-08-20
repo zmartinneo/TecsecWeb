@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>tecsec</title>
+
+<!-- viewport-fit=cover + safe-area padding below = correct behaviour on notched iPhones -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+
+<!-- These four tags are what make "Add to Home Screen" launch fullscreen
+     with no Safari chrome, with the right title and icon. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="tecsec">
+<meta name="theme-color" content="#070709">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="manifest" href="./manifest.json">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --black:#070709;
+    --card:#111113;
+    --hairline:#1E1E22;
+    --hairline-gold:#3A331A;
+    --gold:#D4AF37;
+    --gold-light:#E8CD6E;
+    --gold-dim:#8C7A3C;
+    --down:#B5564C;
+    --text:#F3F1EB;
+    --text-2:#96959B;
+    --text-3:#5C5B62;
+    --display:'Space Grotesk',system-ui,sans-serif;
+    --body:'Manrope',system-ui,sans-serif;
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--black);
+    color:var(--text);
+    font-family:var(--body);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    /* respect the notch + home indicator when launched fullscreen */
+    padding-top:env(safe-area-inset-top);
+  }
+
+  /* ---------- header ---------- */
+  header{padding:12px 24px 10px;flex:none;}
+  .logo{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:30px;
+    letter-spacing:5px;
+    color:var(--gold);
+    line-height:1;
+  }
+  .sub{
+    font-size:9px;
+    letter-spacing:2.5px;
+    color:var(--text-3);
+    margin-top:5px;
+    font-weight:500;
+  }
+  .live-on{color:var(--gold);}
+
+  /* ---------- marquee: the one deliberately animated element ---------- */
+  .marquee{
+    background:var(--card);
+    border-top:1px solid var(--hairline-gold);
+    border-bottom:1px solid var(--hairline-gold);
+    overflow:hidden;
+    white-space:nowrap;
+    padding:8px 0;
+    flex:none;
+  }
+  .marquee-track{
+    display:inline-block;
+    white-space:nowrap;
+    animation:scroll 38s linear infinite;
+  }
+  .marquee span{
+    font-family:var(--display);
+    font-weight:500;
+    font-size:11px;
+    letter-spacing:1px;
+    color:var(--gold);
+    padding-right:24px;
+  }
+  @keyframes scroll{
+    from{transform:translateX(0);}
+    to{transform:translateX(-50%);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .marquee-track{animation:none;}
+  }
+
+  /* ---------- filter chips ---------- */
+  .chips{
+    display:flex;gap:8px;padding:10px 16px 4px;
+    overflow-x:auto;flex:none;
+    scrollbar-width:none;
+  }
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    border:1px solid var(--hairline);
+    border-radius:20px;
+    padding:6px 14px;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:1px;
+    color:var(--text-2);
+    background:none;
+    white-space:nowrap;
+    font-family:var(--body);
+    cursor:pointer;
+  }
+  .chip.active{
+    border-color:var(--gold);
+    color:var(--gold);
+    background:rgba(212,175,55,.08);
+  }
+
+  /* ---------- scroll body ---------- */
+  main{
+    flex:1;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:8px 16px 32px;
+  }
+
+  .feed-row,.card{
+    background:var(--card);
+    border:1px solid var(--hairline);
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:8px;
+  }
+  .card{border-radius:16px;padding:16px;margin-bottom:12px;}
+  .card-gold{background:#14120A;border-color:var(--gold);}
+
+  .feed-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .feed-cat{font-size:9px;letter-spacing:2px;color:var(--gold-dim);font-weight:600;}
+  .feed-watch{font-size:10px;letter-spacing:1px;color:var(--gold);font-weight:600;}
+  .feed-title{font-family:var(--display);font-weight:600;font-size:15px;margin:0 0 2px;}
+  .feed-body{font-size:12.5px;line-height:18px;color:var(--text-2);margin:0;}
+  .feed-row.tappable{cursor:pointer;}
+
+  .card-title{
+    font-size:11px;letter-spacing:2px;color:var(--gold);
+    font-weight:600;margin-bottom:10px;
+  }
+  .price{font-family:var(--display);font-weight:500;font-size:30px;}
+  .down{color:var(--down);}
+  .up{color:var(--gold-light);}
+  .meta{font-size:11px;line-height:16px;color:var(--text-3);margin-top:8px;}
+  .warn{font-size:11.5px;line-height:17px;color:var(--down);margin:8px 0 0;}
+  .bond{font-size:13px;color:#D8D6CF;margin-bottom:4px;}
+
+  .stock{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--card);border:1px solid var(--hairline);
+    border-radius:12px;padding:14px;margin-bottom:8px;
+  }
+  .sym{font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:1px;}
+  .sname{font-size:10px;color:var(--text-3);margin-top:2px;}
+  .sprice{font-family:var(--display);font-size:14px;text-align:right;}
+  .schg{font-size:11px;font-weight:600;margin-top:2px;text-align:right;}
+
+  button.gold{
+    width:100%;background:var(--gold);color:var(--black);
+    border:none;border-radius:8px;padding:14px;
+    font-family:var(--body);font-weight:600;font-size:12px;letter-spacing:2px;
+    margin:4px 0 10px;cursor:pointer;
+  }
+  button.gold:disabled{opacity:.5;}
+
+  input{
+    width:100%;background:#0B0B0D;border:1px solid var(--hairline);
+    border-radius:8px;padding:12px;color:var(--text);
+    font-family:var(--body);font-size:16px; /* 16px stops iOS zoom-on-focus */
+    margin-bottom:10px;
+  }
+  .alert-row{
+    display:flex;justify-content:space-between;
+    padding:8px 0;border-bottom:1px solid var(--hairline);
+  }
+
+  /* ---------- tab bar ---------- */
+  nav{
+    display:flex;flex:none;
+    border-top:1px solid var(--hairline);
+    background:var(--black);
+    padding-top:8px;
+    padding-bottom:calc(6px + env(safe-area-inset-bottom));
+  }
+  nav button{
+    flex:1;background:none;border:none;padding:8px 0;
+    font-family:var(--body);font-weight:600;
+    font-size:10px;letter-spacing:1px;color:var(--text-3);
+    border-top:2px solid transparent;margin-top:-1px;cursor:pointer;
+  }
+  nav button.active{color:var(--gold);border-top-color:var(--gold);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">tecsec</div>
+  <div class="sub">PRIVATE MARKETS TERMINAL • LIVE <span id="liveDot">○</span></div>
+</header>
+
+<div class="marquee"><div class="marquee-track" id="marquee"></div></div>
+
+<div class="chips" id="chips" hidden></div>
+
+<main id="main"></main>
+
+<nav id="nav"></nav>
+
+<script>
+"use strict";
+
+/* ===========================================================================
+   DATA — static reference figures, same content as the native build.
+   The only live paths are the Polygon (Markets) and FRED (Bonds) refreshes.
+   =========================================================================== */
+
+var SP500 = { level:"5,420.12", changePct:"-0.6%", magsPrice:"63.52",
+              magsDayChg:"+3.1%", magsYtd:"-3%", magsWeight:"34%" };
+
+var MAG_TEN = [
+  {sym:"AAPL",name:"Apple",ytd:"+23%",note:"2026 leader",price:"234.12"},
+  {sym:"MSFT",name:"Microsoft",ytd:"-33%",note:"from highs",price:"412.30"},
+  {sym:"NVDA",name:"Nvidia",ytd:"+6%",note:"AI infra",price:"182.45"},
+  {sym:"AMZN",name:"Amazon",ytd:"+2%",note:"AWS",price:"198.20"},
+  {sym:"META",name:"Meta",ytd:"-4%",note:"-28% from highs",price:"485.10"},
+  {sym:"GOOGL",name:"Alphabet",ytd:"+11%",note:"green YTD",price:"168.90"},
+  {sym:"TSLA",name:"Tesla",ytd:"-20%",note:"from highs",price:"245.60"},
+  {sym:"AVGO",name:"Broadcom",ytd:"+8%",note:"Mag Ten",price:"1780.00"},
+  {sym:"NFLX",name:"Netflix",ytd:"+12%",note:"Mag Ten",price:"692.30"},
+  {sym:"ORCL",name:"Oracle",ytd:"+15%",note:"Mag Ten",price:"142.15"}
+];
+
+var TREASURIES_STATIC = {
+  two:{label:"2Y",range:"3.86% - 4.13%"},
+  ten:{label:"10Y",range:"4.38% - 4.50%"},
+  thirty:{label:"30Y",range:"4.95% - 5.25%"}
+};
+
+var CORPORATE = { ig:"+99bp", hy:"+352bp (+8bp)" };
+
+var AI_COMPANIES = [
+  {id:"anthropic",name:"Anthropic",valuation:"$965B",accent:true,
+   detail:"$65B raise, Series H \u2022 confidential S-1 filed \u2022 ~$47B annualized revenue"},
+  {id:"openai",name:"OpenAI",valuation:"$852B",accent:false,
+   detail:"$110B round at $840B \u2022 targeting IPO H2 2026 \u2022 Microsoft $10B+ invested"}
+];
+
+/* Illustrative only — generic handles, not real named individuals.
+   There is no connected social API. */
+var SOCIAL_POSTS = [
+  {id:"soc-1",handle:"@RatesDesk",body:"Curve keeps flattening toward pre-crisis levels. Watching 10Y\u20132Y for the next print."},
+  {id:"soc-2",handle:"@ChipAnalyst",body:"AI infra capex still the single biggest swing factor for Mag Ten earnings this cycle."},
+  {id:"soc-3",handle:"@MarketWatcher",body:"MAGS concentration risk is the story nobody wants to underwrite until it isn\u2019t."},
+  {id:"soc-4",handle:"@CreditDesk",body:"HY spreads widened again \u2014 worth a look against equity vol this week."}
+];
+
+var MEDIA_ITEMS = [
+  {id:"med-1",title:"S&P 500 outlook",query:"S&P 500 market outlook analysis"},
+  {id:"med-2",title:"Mag Seven earnings reactions",query:"Magnificent Seven earnings reaction analysis"},
+  {id:"med-3",title:"Treasury yields explained",query:"treasury yields explained 10 year"},
+  {id:"med-4",title:"Anthropic vs OpenAI",query:"Anthropic vs OpenAI valuation news"}
+];
+
+var MARQUEE_ITEMS = ["AAPL +23% YTD","MAGS -3% YTD","META -4.1%","TSLA -20% FROM HIGHS",
+  "S&P 500 -0.6%","10Y 4.38%","30Y 4.95%","ANTHROPIC $965B","OPENAI $852B"];
+
+var FEED_FILTERS = ["All","Markets","Bonds","AI","Social","Media"];
+
+var FEED = [].concat(
+  [{id:"f-sp500",category:"Markets",title:"S&P 500",
+    body:SP500.level+" ("+SP500.changePct+") \u2022 MAGS $"+SP500.magsPrice+" carries "+SP500.magsWeight+" of index weight"}],
+  MAG_TEN.slice(0,4).map(function(s){
+    return {id:"f-"+s.sym,category:"Markets",title:s.sym,body:s.name+" "+s.ytd+" \u2022 "+s.note};
+  }),
+  [{id:"f-treasuries",category:"Bonds",title:"Treasuries",
+    body:"2Y "+TREASURIES_STATIC.two.range+" \u2022 10Y "+TREASURIES_STATIC.ten.range+" \u2022 30Y "+TREASURIES_STATIC.thirty.range}],
+  [{id:"f-corporate",category:"Bonds",title:"Corporate spreads",
+    body:"Investment grade "+CORPORATE.ig+" \u2022 High yield "+CORPORATE.hy}],
+  AI_COMPANIES.map(function(c){
+    return {id:"f-"+c.id,category:"AI",title:c.name+" "+c.valuation,body:c.detail};
+  }),
+  SOCIAL_POSTS.map(function(p){
+    return {id:"f-"+p.id,category:"Social",title:p.handle,body:p.body};
+  }),
+  MEDIA_ITEMS.map(function(m){
+    return {id:"f-"+m.id,category:"Media",title:m.title,
+            body:"Tap to open a live YouTube search for this topic.",mediaQuery:m.query};
+  })
+);
+
+/* ===========================================================================
+   STATE
+   Keys live in localStorage only. They are deliberately NOT baked into this
+   file, because GitHub Pages on a free account requires a PUBLIC repo — any
+   key committed here would be readable by anyone who finds the URL.
+   =========================================================================== */
+
+var state = {
+  tab:"Feed",
+  filter:"All",
+  polygonKey:localStorage.getItem("tecsec.polygon") || "",
+  fredKey:localStorage.getItem("tecsec.fred") || "",
+  treasuries:null,
+  magLive:{},
+  marketsBusy:false,
+  marketsMsg:"",
+  bondsMsg:""
+};
+
+var TABS = ["Feed","Markets","Bonds","AI","Settings"];
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+  });
+}
+
+/* ===========================================================================
+   LIVE DATA
+   Both of these call third-party APIs directly from the browser, which means
+   they depend on those APIs sending CORS headers. See README — FRED in
+   particular is likely to be blocked. Failures are surfaced explicitly rather
+   than swallowed, so you can tell a CORS block from a bad key.
+   =========================================================================== */
+
+function fredSeries(series){
+  var url = "https://api.stlouisfed.org/fred/series/observations?series_id="+series+
+            "&api_key="+encodeURIComponent(state.fredKey)+
+            "&file_type=json&sort_order=desc&limit=1";
+  return fetch(url).then(function(r){
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return r.json();
+  }).then(function(j){
+    return (j.observations && j.observations[0]) ? j.observations[0].value : null;
+  });
+}
+
+function refreshBonds(){
+  if(!state.fredKey){
+    state.bondsMsg = "No FRED key set. Add one under Settings.";
+    return render();
+  }
+  state.bondsMsg = "Fetching\u2026";
+  render();
+  Promise.all([fredSeries("DGS2"),fredSeries("DGS10"),fredSeries("DGS30")])
+    .then(function(v){
+      state.treasuries = {two:v[0],ten:v[1],thirty:v[2],
+                          at:new Date().toISOString().slice(11,16)};
+      state.bondsMsg = "";
+      render();
+    })
+    .catch(function(e){
+      // A CORS block surfaces as a TypeError with an opaque message, which is
+      // why this distinguishes it from a normal HTTP error. Checked by name
+      // rather than `instanceof`, which fails across realms (iframes, etc).
+      state.bondsMsg = (e && e.name === "TypeError")
+        ? "Request blocked by the browser. FRED does not appear to send CORS headers, so it cannot be called directly from a web page. See README \u2014 this needs a proxy. The static figures below still apply."
+        : "FRED error: "+e.message+". Check the key under Settings.";
+      render();
+    });
+}
+
+function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+
+/* Sequential with a delay, and it stops on the first 429 — free Polygon keys
+   allow only a handful of requests per minute, so 10 parallel calls would
+   reliably trip the limit. */
+function refreshMarkets(){
+  if(!state.polygonKey){
+    state.marketsMsg = "No Polygon key set. Add one under Settings.";
+    return render();
+  }
+  state.marketsBusy = true;
+  state.marketsMsg = "";
+  render();
+
+  var i = 0;
+  function step(){
+    if(i >= MAG_TEN.length){
+      state.marketsBusy = false;
+      return render();
+    }
+    var sym = MAG_TEN[i].sym;
+    return fetch("https://api.polygon.io/v2/aggs/ticker/"+sym+"/prev?apiKey="+encodeURIComponent(state.polygonKey))
+      .then(function(r){
+        if(r.status === 429){
+          state.marketsMsg = "Rate limited after "+i+" of "+MAG_TEN.length+
+            " symbols. Free Polygon keys allow only a few requests per minute \u2014 wait a moment and try again.";
+          i = MAG_TEN.length;
+          return null;
+        }
+        if(r.status === 401 || r.status === 403){
+          state.marketsMsg = "Polygon rejected the key (HTTP "+r.status+"). Check it under Settings.";
+          i = MAG_TEN.length;
+          return null;
+        }
+        return r.json();
+      })
+      .then(function(j){
+        if(j && j.results && j.results[0] && j.results[0].o){
+          var res = j.results[0];
+          state.magLive[sym] = {
+            price:res.c.toFixed(2),
+            chg:((res.c - res.o)/res.o)*100
+          };
+          render();
+        }
+      })
+      .catch(function(e){
+        if(e && e.name === "TypeError"){
+          state.marketsMsg = "Request blocked by the browser (CORS). Polygon may not permit direct browser calls from this origin \u2014 see README.";
+          i = MAG_TEN.length;
+        }
+      })
+      .then(function(){
+        i++;
+        return sleep(350).then(step);
+      });
+  }
+  step();
+}
+
+/* ===========================================================================
+   VIEWS
+   =========================================================================== */
+
+function viewFeed(){
+  var items = state.filter === "All"
+    ? FEED
+    : FEED.filter(function(f){ return f.category === state.filter; });
+
+  return items.map(function(it){
+    var tappable = !!it.mediaQuery;
+    return '<div class="feed-row'+(tappable?' tappable':'')+'"'+
+      (tappable?' data-media="'+esc(it.mediaQuery)+'"':'')+'>'+
+      '<div class="feed-top"><span class="feed-cat">'+esc(it.category.toUpperCase())+'</span>'+
+      (tappable?'<span class="feed-watch">WATCH \u203A</span>':'')+'</div>'+
+      '<p class="feed-title">'+esc(it.title)+'</p>'+
+      '<p class="feed-body">'+esc(it.body)+'</p></div>';
+  }).join("");
+}
+
+function viewMarkets(){
+  var h = '<div class="card"><div class="card-title">S&amp;P 500</div>'+
+    '<div class="price">'+esc(SP500.level)+' <span class="down">'+esc(SP500.changePct)+'</span></div>'+
+    '<div class="meta">MAGS ETF $'+esc(SP500.magsPrice)+' '+esc(SP500.magsDayChg)+
+    ' day / '+esc(SP500.magsYtd)+' YTD \u2022 '+esc(SP500.magsWeight)+' of S&amp;P weight</div></div>';
+
+  h += MAG_TEN.map(function(s){
+    var l = state.magLive[s.sym];
+    var price = l ? l.price : s.price;
+    var chg = l ? ((l.chg>=0?"+":"")+l.chg.toFixed(1)+"%") : s.ytd;
+    var up = l ? (l.chg>=0) : (s.ytd.indexOf("+")!==-1);
+    return '<div class="stock"><div><div class="sym">'+esc(s.sym)+'</div>'+
+      '<div class="sname">'+esc(s.name)+' \u2022 '+(l?"today, live":esc(s.note))+'</div></div>'+
+      '<div><div class="sprice">$'+esc(price)+'</div>'+
+      '<div class="schg '+(up?"up":"down")+'">'+esc(chg)+'</div></div></div>';
+  }).join("");
+
+  h += '<button class="gold" data-act="refreshMarkets"'+(state.marketsBusy?" disabled":"")+'>'+
+       (state.marketsBusy?"REFRESHING\u2026":"REFRESH LIVE (POLYGON)")+'</button>';
+  if(state.marketsMsg) h += '<p class="warn">'+esc(state.marketsMsg)+'</p>';
+  h += '<div class="meta">Live refresh shows the previous session\u2019s open-to-close move. '+
+       'YTD and distance-from-high figures stay static until updated by hand.</div>';
+  return h;
+}
+
+function viewBonds(){
+  var t = state.treasuries;
+  var h = '<div class="card"><div class="card-title">US TREASURIES \u2022 FRED DGS2 / DGS10 / DGS30</div>';
+  if(t){
+    h += '<div class="bond">2Y: '+esc(t.two||"n/a")+'%</div>'+
+         '<div class="bond">10Y: '+esc(t.ten||"n/a")+'%</div>'+
+         '<div class="bond">30Y: '+esc(t.thirty||"n/a")+'%</div>'+
+         '<div class="meta">Fetched '+esc(t.at)+' UTC</div>';
+  } else {
+    h += '<div class="bond">2Y: '+esc(TREASURIES_STATIC.two.range)+' (static)</div>'+
+         '<div class="bond">10Y: '+esc(TREASURIES_STATIC.ten.range)+' (static)</div>'+
+         '<div class="bond">30Y: '+esc(TREASURIES_STATIC.thirty.range)+' (static)</div>';
+  }
+  h += '<button class="gold" data-act="refreshBonds">REFRESH FROM FRED</button>';
+  if(state.bondsMsg) h += '<p class="warn">'+esc(state.bondsMsg)+'</p>';
+  h += '</div>';
+
+  h += '<div class="card"><div class="card-title">CORPORATE</div>'+
+       '<div class="bond">Investment grade spread: '+esc(CORPORATE.ig)+'</div>'+
+       '<div class="bond">High yield spread: '+esc(CORPORATE.hy)+'</div>'+
+       '<div class="meta">Static reference \u2014 no free live source wired in.</div></div>';
+  return h;
+}
+
+function viewAI(){
+  return AI_COMPANIES.map(function(c){
+    return '<div class="card'+(c.accent?" card-gold":"")+'">'+
+      '<div class="card-title">'+esc(c.name.toUpperCase())+' '+esc(c.valuation)+'</div>'+
+      '<div class="bond">'+esc(c.detail)+'</div></div>';
+  }).join("") +
+  '<div class="meta">Manually entered reference figures \u2014 verify independently.</div>';
+}
+
+function viewSettings(){
+  return '<div class="card"><div class="card-title">API KEYS</div>'+
+    '<input id="kPoly" type="text" autocomplete="off" autocapitalize="off" '+
+      'spellcheck="false" placeholder="Polygon.io key" value="'+esc(state.polygonKey)+'">'+
+    '<input id="kFred" type="text" autocomplete="off" autocapitalize="off" '+
+      'spellcheck="false" placeholder="FRED key" value="'+esc(state.fredKey)+'">'+
+    '<button class="gold" data-act="saveKeys">SAVE KEYS</button>'+
+    '<div class="meta">Stored in this browser\u2019s localStorage on your device only. '+
+    'They are never committed to the repo and never leave your phone except in the '+
+    'API calls themselves. Clearing Safari data will erase them.</div></div>'+
+
+    '<div class="card"><div class="card-title">ALERTS</div>'+
+    '<div class="bond">Push notifications are not available in this web version.</div>'+
+    '<div class="meta">iOS supports web push for home-screen apps, but it requires a '+
+    'service worker and a push server \u2014 not included here. The native TestFlight '+
+    'build is the path if you need real alerts.</div></div>'+
+
+    '<div class="card"><div class="card-title">ADD TO HOME SCREEN</div>'+
+    '<div class="bond">Safari \u2192 Share \u2192 Add to Home Screen.</div>'+
+    '<div class="meta">Launching from the home-screen icon runs it fullscreen with no '+
+    'Safari chrome. It must be added from Safari \u2014 Chrome on iOS cannot do this.</div></div>';
+}
+
+/* ===========================================================================
+   RENDER
+   =========================================================================== */
+
+function render(){
+  document.getElementById("liveDot").textContent =
+    (state.polygonKey || state.fredKey) ? "\u25CF" : "\u25CB";
+  document.getElementById("liveDot").className =
+    (state.polygonKey || state.fredKey) ? "live-on" : "";
+
+  var chips = document.getElementById("chips");
+  chips.hidden = state.tab !== "Feed";
+  if(state.tab === "Feed"){
+    chips.innerHTML = FEED_FILTERS.map(function(f){
+      return '<button class="chip'+(state.filter===f?" active":"")+'" data-filter="'+esc(f)+'">'+esc(f)+'</button>';
+    }).join("");
+  }
+
+  var main = document.getElementById("main");
+  if(state.tab === "Feed") main.innerHTML = viewFeed();
+  else if(state.tab === "Markets") main.innerHTML = viewMarkets();
+  else if(state.tab === "Bonds") main.innerHTML = viewBonds();
+  else if(state.tab === "AI") main.innerHTML = viewAI();
+  else main.innerHTML = viewSettings();
+
+  document.getElementById("nav").innerHTML = TABS.map(function(t){
+    return '<button class="'+(state.tab===t?"active":"")+'" data-tab="'+esc(t)+'">'+esc(t)+'</button>';
+  }).join("");
+}
+
+/* Single delegated listener — survives every re-render, no rebinding needed. */
+document.addEventListener("click", function(e){
+  var el = e.target.closest("[data-tab],[data-filter],[data-act],[data-media]");
+  if(!el) return;
+
+  if(el.dataset.tab){
+    state.tab = el.dataset.tab;
+    document.getElementById("main").scrollTop = 0;
+    return render();
+  }
+  if(el.dataset.filter){
+    state.filter = el.dataset.filter;
+    return render();
+  }
+  if(el.dataset.media){
+    // YouTube blocks iframing of its search results, so this opens a real tab
+    // rather than an in-page embed.
+    window.open("https://www.youtube.com/results?search_query="+
+      encodeURIComponent(el.dataset.media), "_blank");
+    return;
+  }
+  if(el.dataset.act === "refreshMarkets") return refreshMarkets();
+  if(el.dataset.act === "refreshBonds") return refreshBonds();
+  if(el.dataset.act === "saveKeys"){
+    state.polygonKey = document.getElementById("kPoly").value.trim();
+    state.fredKey = document.getElementById("kFred").value.trim();
+    localStorage.setItem("tecsec.polygon", state.polygonKey);
+    localStorage.setItem("tecsec.fred", state.fredKey);
+    state.marketsMsg = "";
+    state.bondsMsg = "";
+    render();
+    alert("Keys saved to this device.");
+  }
+});
+
+/* marquee content is duplicated so the -50% translate loops seamlessly */
+document.getElementById("marquee").innerHTML =
+  new Array(2).fill(
+    MARQUEE_ITEMS.map(function(t){ return '<span>'+esc(t)+'</span>'; }).join("")
+  ).join("");
+
+render();
+</script>
+</body>
+</html>
